@@ -117,6 +117,7 @@
 
       <div class="group-title">Operación</div>
       <button class="nav-btn active" data-target="dashboard">Dashboard <span>›</span></button>
+      <button class="nav-btn" data-target="proveedores">Proveedores <span>›</span></button>
       <button class="nav-btn" data-target="catalogo">Catálogo <span>›</span></button>
       <button class="nav-btn" data-target="requisiciones">Requisiciones <span>›</span></button>
       <button class="nav-btn" data-target="oc">Órdenes de compra <span>›</span></button>
@@ -180,6 +181,20 @@
         </div>
       </section>
 
+      <section id="proveedores" class="section">
+        <div class="section-head">
+          <div>
+            <h3>Base de Proveedores</h3>
+            <p>Directorio de proveedores y condiciones de crédito.</p>
+          </div>
+          <div class="searchbox"><input id="provSearch" placeholder="Buscar proveedor" /></div>
+        </div>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Proveedor</th><th>Crédito</th><th>Monto de Crédito</th><th>Días de Crédito</th></tr></thead>
+          <tbody id="provTable"></tbody>
+        </table></div>
+      </section>
+
       <section id="catalogo" class="section">
         <div class="section-head">
           <div>
@@ -193,7 +208,7 @@
             <div class="field"><label>Código / EAN</label><input name="codigo" required></div>
             <div class="field span-2"><label>Descripción</label><input name="descripcion" required></div>
             <div class="field"><label>Tipo</label><select name="tipo"><option>Medicamento</option><option>Insumo</option><option>Equipo médico</option><option>Químico</option></select></div>
-            <div class="field"><label>Sucursal</label><input name="sucursal" required></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
             <div class="field"><label>Almacén</label><input name="almacen" required></div>
             <div class="field"><label>Unidad de medida</label><input name="unidad" value="PZA"></div>
             <div class="field"><label>Costo unitario</label><input name="costo" type="number" step="0.01" value="0"></div>
@@ -218,7 +233,7 @@
             <div class="field"><label>Folio requisición</label><input name="folio" readonly></div>
             <div class="field"><label>Fecha</label><input name="fecha" type="date" required></div>
             <div class="field"><label>Fecha de surtimiento</label><input name="fechaSurtimiento" type="date"></div>
-            <div class="field"><label>Sucursal</label><input name="sucursal" required></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
             <div class="field"><label>Almacén</label><input name="almacen" required></div>
             <div class="field"><label>Quien genera</label><input name="generadoPor" required></div>
             <div class="field span-2"><label>Partidas (una por línea: código | descripción | cantidad | unidad)</label><textarea name="partidas" placeholder="MED-001 | Ondansetron 8 mg | 12 | PZA"></textarea></div>
@@ -233,17 +248,20 @@
       </section>
 
       <section id="oc" class="section">
-        <div class="section-head"><div><h3>Órdenes de compra</h3><p>Genera OCs con formato ejecutivo a partir de tu operación.</p></div></div>
+        <div class="section-head">
+          <div><h3>Órdenes de compra</h3><p>Genera OCs con formato ejecutivo a partir de tu operación.</p></div>
+          <div class="searchbox"><input id="ocSearch" placeholder="Buscar por folio, estatus o proveedor" /></div>
+        </div>
         <div class="grid-2">
           <form class="card" id="ocForm">
             <div class="form-grid compact-3">
-              <div class="field"><label>Folio OC</label><input name="folio" readonly></div>
-              <div class="field"><label>Fecha OC</label><input name="fecha" type="date" required></div>
-              <div class="field"><label>Folio requisición</label><input name="folioRequi"></div>
+              <div class="field"><label>Folio OC</label><input name="folio" readonly style="background:#eef3f9; cursor:not-allowed;"></div>
+              <div class="field"><label>Fecha OC</label><input name="fecha" type="date" required readonly style="background:#eef3f9; cursor:not-allowed;"></div>
+              <div class="field"><label>Folio requisición</label><select name="folioRequi" id="ocFolioRequiSelect" onfocus="updateRequiSelect()"><option value="">Ninguna / Directa</option></select></div>
               <div class="field"><label>Razón social</label><input name="razon" value="SANARÉ"></div>
               <div class="field"><label>Proveedor</label><input name="proveedor" required></div>
               <div class="field"><label>RFC proveedor</label><input name="rfc"></div>
-              <div class="field"><label>Sede / sucursal</label><input name="sede" required></div>
+              <div class="field"><label>Centro de Vida (Sede)</label><select name="sede" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
               <div class="field"><label>Condiciones</label><select name="condiciones"><option>Contado</option><option>Crédito 15 días</option><option>Crédito 30 días</option><option>Crédito 45 días</option></select></div>
               <div class="field"><label>Fecha entrega</label><input name="fechaEntrega" type="date"></div>
               <div class="field span-2"><label>Partidas (una por línea: no | código | descripción | cantidad | um | costo | iva%)</label><textarea name="partidas" placeholder="1 | MED-001 | Ondansetron 8 mg | 12 | PZA | 125.50 | 16"></textarea></div>
@@ -265,7 +283,7 @@
           <div class="form-grid compact-3">
             <div class="field"><label>Fecha</label><input name="fecha" type="date" required></div>
             <div class="field"><label>Tipo</label><select name="tipo"><option>Entrada</option><option>Salida</option><option>Ajuste</option></select></div>
-            <div class="field"><label>Sucursal</label><input name="sucursal" required></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
             <div class="field"><label>Almacén</label><input name="almacen" required></div>
             <div class="field"><label>Código</label><input name="codigo" required></div>
             <div class="field"><label>Descripción</label><input name="descripcion" required></div>
@@ -297,7 +315,7 @@
         <form class="card" id="closeForm">
           <div class="form-grid compact-3">
             <div class="field"><label>Mes</label><input name="mes" type="month" required></div>
-            <div class="field"><label>Sucursal</label><input name="sucursal" required></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
             <div class="field"><label>Almacén</label><input name="almacen" required></div>
             <div class="field"><label>Inventario inicial</label><input name="inicial" type="number" step="0.01" required></div>
             <div class="field"><label>Entradas</label><input name="entradas" type="number" step="0.01" required></div>
@@ -328,9 +346,30 @@
 <script>
 const KEY = 'sanare_erp_demo_v1';
 let state = loadState();
+if (!state.providers || state.providers.length === 0) {
+  state.providers = [
+      {nombre: "NADRO", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "UNIMEDICAL", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "SALUD Y VIDA CONDESA", credito: "SI", monto: "300000", dias: "30 días"},
+      {nombre: "PHARMATYCSA", credito: "Si", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MCC", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MEDICXEN (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "ALTHACARE (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "DEMSA", credito: "SI", monto: "1500000", dias: "Pendiente"},
+      {nombre: "PROBEMEDIC", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "RENAVITA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "FARMACIAS VIDA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "TIVASANI", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "DROGAS Y ENSERES", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "PIXAN", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "MEDMONT", credito: "SI", monto: "500000", dias: "30 días"},
+      {nombre: "SALUCOM", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "ATRYS", credito: "SI", monto: "INDEFINIDO", dias: "30 días"}
+  ];
+}
 
 function defaultState(){
-  return { catalog: [], requisitions: [], orders: [], moves: [], closes: [] };
+  return { catalog: [], requisitions: [], orders: [], moves: [], closes: [], providers: [] };
 }
 function loadState(){
   try { return JSON.parse(localStorage.getItem(KEY)) || defaultState(); }
@@ -484,36 +523,62 @@ function renderCatalog(){
 document.getElementById('catalogSearch').addEventListener('input', renderCatalog);
 
 function renderRequisitions(){
+  const term = (document.getElementById('reqSearch')?.value || '').toLowerCase();
+  const rows = state.requisitions.filter(r => !term || [r.folio, r.estatus, r.sucursal, r.generadoPor].join(' ').toLowerCase().includes(term));
+  
   const body = document.getElementById('reqTable');
-  body.innerHTML = state.requisitions.length ? state.requisitions.map((r,i)=>`
-    <tr><td>${r.folio}</td><td>${r.fecha}</td><td>${r.sucursal}<div class="small muted">${r.almacen}</div></td><td>${r.generadoPor}</td><td>${r.fechaSurtimiento || '-'}</td><td><span class="pill ${r.estatus==='Abierta'?'wait':'ok'}">${r.estatus}</span></td><td><button class="btn btn-soft" onclick="prefillOC('${r.folio}')">Pasar a OC</button></td></tr>
-  `).join('') : `<tr><td colspan="7"><div class="empty">Sin requisiciones.</div></td></tr>`;
+  body.innerHTML = rows.length ? rows.map((r,i)=>{
+    // Buscar si hay OCs o Facturas ligadas a esta requi
+    const ocs_ligadas = state.orders.filter(o => o.folioRequi === r.folio).map(o => o.folio);
+    const moves_ligados = state.moves.filter(m => ocs_ligadas.includes(m.oc) && m.factura).map(m => m.factura);
+    const ocs_str = ocs_ligadas.length ? ocs_ligadas.join(', ') : '-';
+    const facturas_str = [...new Set(moves_ligados)].length ? [...new Set(moves_ligados)].join(', ') : '-';
+    
+    return `<tr><td>${r.folio}</td><td>${r.fecha}</td><td>${r.sucursal}<div class="small muted">${r.almacen}</div></td><td>${r.generadoPor}</td><td>${r.fechaSurtimiento || '-'}</td><td>${ocs_str}</td><td>${facturas_str}</td><td><span class="pill ${r.estatus.includes('Abierta')||r.estatus.includes('Parcial')?'wait':r.estatus==='Cancelada'?'bad':'ok'}">${r.estatus}</span></td><td><button class="btn btn-soft" onclick="prefillOC('${r.folio}')">Pasar a OC</button></td></tr>`;
+  }).join('') : `<tr><td colspan="9"><div class="empty">Sin requisiciones encontradas.</div></td></tr>`;
 
-  document.getElementById('dashboardReqs').innerHTML = state.requisitions.slice(0,5).map(r=>`<tr><td>${r.folio}</td><td>${r.sucursal}</td><td>${r.almacen}</td><td>${r.fechaSurtimiento || '-'}</td><td><span class="pill ${r.estatus==='Abierta'?'wait':'ok'}">${r.estatus}</span></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin registros.</td></tr>';
+  document.getElementById('dashboardReqs').innerHTML = state.requisitions.slice(0,5).map(r=>`<tr><td>${r.folio}</td><td>${r.sucursal}</td><td>${r.almacen}</td><td>${r.fechaSurtimiento || '-'}</td><td><span class="pill ${r.estatus.includes('Abierta')?'wait':'ok'}">${r.estatus}</span></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin registros.</td></tr>';
 }
+document.getElementById('reqSearch')?.addEventListener('input', renderRequisitions);
+
 
 function prefillOC(folio){
   const req = state.requisitions.find(r=>r.folio===folio);
   if(!req) return;
   showSection('oc');
   const form = document.getElementById('ocForm');
+  updateRequiSelect();
   form.folioRequi.value = req.folio;
   form.sede.value = req.sucursal;
   form.partidas.value = (req.partidas||[]).map((p,idx)=>`${idx+1} | ${p.codigo} | ${p.descripcion} | ${p.cantidad} | ${p.unidad} | 0 | 16`).join('\n');
   updateOcPreview();
 }
 
-function renderOrders(){
-  document.getElementById('ocTable').innerHTML = state.orders.length ? state.orders.map((o,i)=>`
-    <tr><td>${o.folio}</td><td>${o.proveedor}</td><td>${o.sede}</td><td>${o.fechaEntrega || '-'}</td><td>${money(o.total)}</td><td>${o.condiciones}</td><td><button class="btn btn-soft" onclick="loadOrder(${i})">Ver</button></td></tr>
-  `).join('') : `<tr><td colspan="7"><div class="empty">Sin órdenes de compra.</div></td></tr>`;
+
+function updateRequiSelect(){
+  const sel = document.getElementById('ocFolioRequiSelect');
+  if(!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Ninguna / Directa</option>' + state.requisitions.filter(r => r.estatus.includes('Abierta') || r.estatus.includes('Parcial') || r.folio === currentVal).map(r => `<option value="${r.folio}">${r.folio} - ${r.sucursal} (${r.estatus})</option>`).join('');
+  sel.value = currentVal;
 }
+function renderOrders(){
+  const term = (document.getElementById('ocSearch')?.value || '').toLowerCase();
+  const rows = state.orders.filter(o => !term || [o.folio, o.proveedor, o.sede].join(' ').toLowerCase().includes(term));
+  document.getElementById('ocTable').innerHTML = rows.length ? rows.map((o,i)=>`
+    <tr><td>${o.folio}</td><td>${o.proveedor}</td><td>${o.sede}</td><td>${o.fechaEntrega || '-'}</td><td>${money(o.total)}</td><td>${o.condiciones}</td><td><button class="btn btn-soft" onclick="loadOrder(${i})">Ver</button></td></tr>
+  `).join('') : `<tr><td colspan="7"><div class="empty">Sin órdenes encontradas.</div></td></tr>`;
+}
+document.getElementById('ocSearch')?.addEventListener('input', renderOrders);
+
 function loadOrder(i){
   const o = state.orders[i];
   showSection('oc');
   const f = document.getElementById('ocForm');
   ['folio','fecha','folioRequi','razon','proveedor','rfc','sede','condiciones','fechaEntrega','observaciones'].forEach(k=>f[k].value = o[k] || '');
   f.partidas.value = (o.partidas||[]).map(p=>`${p.partida} | ${p.codigo} | ${p.descripcion} | ${p.cantidad} | ${p.unidad} | ${p.costo} | ${p.iva}`).join('\n');
+  updateRequiSelect();
+  f.folioRequi.value = o.folioRequi || "";
   updateOcPreview();
 }
 
@@ -567,7 +632,18 @@ function renderDashboard(){
   document.getElementById('dashAjustes').textContent = lastMonth.filter(m=>m.tipo==='Ajuste').length;
 }
 
-function renderAll(){ renderCatalog(); renderRequisitions(); renderOrders(); renderMoves(); renderInventory(); renderCloses(); renderReports(); renderDashboard(); }
+
+function renderProviders(){
+  const term = (document.getElementById('provSearch')?.value || '').toLowerCase();
+  const rows = (state.providers || []).filter(p => !term || p.nombre.toLowerCase().includes(term));
+  const body = document.getElementById('provTable');
+  if(body) {
+    body.innerHTML = rows.length ? rows.map(p => `<tr><td>${p.nombre}</td><td><span class="pill ${p.credito.toUpperCase()==='SI'?'ok':'bad'}">${p.credito}</span></td><td>${p.monto}</td><td>${p.dias}</td></tr>`).join('') : `<tr><td colspan="4"><div class="empty">Sin proveedores.</div></td></tr>`;
+  }
+}
+document.getElementById('provSearch')?.addEventListener('input', renderProviders);
+
+function renderAll(){ renderProviders(); renderCatalog(); renderRequisitions(); renderOrders(); renderMoves(); renderInventory(); renderCloses(); renderReports(); renderDashboard(); }
 
 function loadDemo(){
   state = {
@@ -588,6 +664,25 @@ function loadDemo(){
     ],
     closes:[
       {mes:'2026-03',sucursal:'Narvarte',almacen:'Farmacia',inicial:200,entradas:55,salidas:40,ajustes:-2,fisico:212,responsable:'Administración',teorico:213,diferencia:-1}
+    ],
+    providers: [
+      {nombre: "NADRO", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "UNIMEDICAL", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "SALUD Y VIDA CONDESA", credito: "SI", monto: "300000", dias: "30 días"},
+      {nombre: "PHARMATYCSA", credito: "Si", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MCC", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MEDICXEN (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "ALTHACARE (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "DEMSA", credito: "SI", monto: "1500000", dias: "Pendiente"},
+      {nombre: "PROBEMEDIC", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "RENAVITA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "FARMACIAS VIDA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "TIVASANI", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "DROGAS Y ENSERES", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "PIXAN", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "MEDMONT", credito: "SI", monto: "500000", dias: "30 días"},
+      {nombre: "SALUCOM", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "ATRYS", credito: "SI", monto: "INDEFINIDO", dias: "30 días"}
     ]
   };
   saveState(); setReqFolio(); setOcFolio(); updateOcPreview();
