@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanaré Compras e Inventario</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --soft:#eef3f9;
+      --line:#d7e0ea;
+      --text:#1b2a3a;
+      --muted:#66788a;
+      --primary:#0a6ed1;
+      --primary-2:#0854a0;
+      --success:#107e3e;
+      --warn:#e9730c;
+      --danger:#bb0000;
+      --shadow:0 10px 28px rgba(22,37,55,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    aside{background:linear-gradient(180deg,#0d2238,#132f4c);color:#fff;padding:22px 18px;position:sticky;top:0;height:100vh;overflow:auto}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+    .brand-badge{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#0a6ed1,#37a4ff);display:grid;place-items:center;font-weight:700;font-size:20px;box-shadow:var(--shadow)}
+    .brand h1{font-size:18px;margin:0;line-height:1.1}
+    .brand small{opacity:.75}
+    .group-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#9fb6cb;margin:18px 10px 8px}
+    .nav-btn{width:100%;border:none;background:transparent;color:#e6eef7;text-align:left;padding:12px 14px;border-radius:14px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+    .nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.12)}
+    main{padding:22px 24px 32px;overflow:auto}
+    .topbar{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+    .title h2{margin:0;font-size:26px}
+    .title p{margin:6px 0 0;color:var(--muted)}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:none;border-radius:12px;padding:11px 16px;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-2)}
+    .btn-soft{background:var(--soft);color:var(--text)}
+    .btn-danger{background:var(--danger);color:#fff}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+    .metric-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .metric-value{font-size:28px;font-weight:700;margin-top:8px}
+    .metric-sub{font-size:13px;color:var(--muted);margin-top:6px}
+    .grid-2,.grid-3{display:grid;gap:16px}
+    .grid-2{grid-template-columns:1.4fr .8fr}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .section{display:none}
+    .section.active{display:block}
+    .section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+    .section-head h3{margin:0;font-size:20px}
+    .section-head p{margin:4px 0 0;color:var(--muted)}
+    form.card{padding-bottom:22px}
+    .form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .form-grid.compact-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .field{display:flex;flex-direction:column;gap:7px}
+    .field label{font-size:13px;color:var(--muted);font-weight:600}
+    .field input,.field select,.field textarea{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;font:inherit;color:var(--text)}
+    .field textarea{min-height:92px;resize:vertical}
+    .span-2{grid-column:span 2}
+    .span-4{grid-column:span 4}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+    th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;background:#fafcff}
+    .table-wrap{overflow:auto}
+    .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .pill.ok{background:#e8f7ec;color:var(--success)}
+    .pill.wait{background:#fff0de;color:var(--warn)}
+    .pill.bad{background:#ffe7e7;color:var(--danger)}
+    .split{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
+    .total-box{background:#f8fbff;border:1px solid var(--line);padding:14px;border-radius:14px}
+    .muted{color:var(--muted)}
+    .subtabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .subtab{border:none;background:var(--soft);padding:10px 14px;border-radius:999px;cursor:pointer;font-weight:700;color:#36506a}
+    .subtab.active{background:var(--primary);color:#fff}
+    .searchbox{width:min(340px,100%)}
+    .searchbox input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line)}
+    .kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+    .empty{padding:18px;border:1px dashed var(--line);border-radius:16px;text-align:center;color:var(--muted);background:#fbfdff}
+    .small{font-size:12px}
+    .right{text-align:right}
+    .oc-preview{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+    .oc-header{display:flex;justify-content:space-between;gap:16px;border-bottom:2px solid #17324d;padding-bottom:14px;margin-bottom:14px}
+    .oc-header h4{margin:0;font-size:22px}
+    .oc-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+    .oc-meta .box{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fbfdff}
+    .footer-note{margin-top:12px;padding:12px;border-radius:12px;background:#f8fbff;border:1px solid var(--line)}
+    .actions-row{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+    @media (max-width:1200px){
+      .cards,.totals,.kpi-grid,.grid-3,.oc-meta,.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-2{grid-template-columns:1fr}
+    }
+    @media (max-width:820px){
+      .app{grid-template-columns:1fr}
+      aside{position:relative;height:auto}
+      main{padding:16px}
+      .cards,.totals,.kpi-grid,.grid-3,.oc-meta,.form-grid{grid-template-columns:1fr}
+      .span-2,.span-4{grid-column:span 1}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="brand-badge">S</div>
+        <div>
+          <h1>Sanaré Compras</h1>
+          <small>ERP de compras e inventario</small>
+        </div>
+      </div>
+
+      <div class="group-title">Operación</div>
+      <button class="nav-btn active" data-target="dashboard">Dashboard <span>›</span></button>
+      <button class="nav-btn" data-target="proveedores">Proveedores <span>›</span></button>
+      <button class="nav-btn" data-target="catalogo">Catálogo <span>›</span></button>
+      <button class="nav-btn" data-target="requisiciones">Requisiciones <span>›</span></button>
+      <button class="nav-btn" data-target="oc">Órdenes de compra <span>›</span></button>
+      <button class="nav-btn" data-target="movimientos">Entradas y salidas <span>›</span></button>
+      <button class="nav-btn" data-target="inventario">Inventario <span>›</span></button>
+      <button class="nav-btn" data-target="cierres">Cierre mensual <span>›</span></button>
+      <button class="nav-btn" data-target="reportes">Reportes <span>›</span></button>
+
+      <div class="group-title">Ayuda</div>
+      <button class="nav-btn" id="loadDemoBtn">Cargar demo <span>⟳</span></button>
+      <button class="nav-btn" id="clearDataBtn">Limpiar datos <span>×</span></button>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div class="title">
+          <h2>Compras, inventario y cierre mensual</h2>
+          <p>Base funcional inspirada en tu flujo: requisición → OC → entradas/salidas → inventario → cierre.</p>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-soft" onclick="window.print()">Imprimir</button>
+          <button class="btn btn-primary" onclick="exportData()">Exportar JSON</button>
+        </div>
+      </div>
+
+      <section id="dashboard" class="section active">
+        <div class="cards">
+          <div class="card"><div class="metric-label">Inventario total</div><div class="metric-value" id="kpiInventario">$0.00</div><div class="metric-sub">Valorizado con costo unitario</div></div>
+          <div class="card"><div class="metric-label">Requisiciones abiertas</div><div class="metric-value" id="kpiReqs">0</div><div class="metric-sub">Pendientes de OC</div></div>
+          <div class="card"><div class="metric-label">OCs emitidas</div><div class="metric-value" id="kpiOcs">0</div><div class="metric-sub">Histórico guardado</div></div>
+          <div class="card"><div class="metric-label">Diferencia de cierre</div><div class="metric-value" id="kpiDiff">0</div><div class="metric-sub">Final físico vs teórico</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h3>Últimas requisiciones</h3>
+                <p>Seguimiento operativo del surtimiento.</p>
+              </div>
+            </div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Folio</th><th>Sucursal</th><th>Almacén</th><th>Entrega</th><th>Estatus</th></tr></thead>
+              <tbody id="dashboardReqs"></tbody>
+            </table></div>
+          </div>
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h3>Resumen mensual</h3>
+                <p>Movimiento consolidado más reciente.</p>
+              </div>
+            </div>
+            <div class="kpi-grid">
+              <div class="total-box"><div class="metric-label">Entradas</div><div class="metric-value" id="dashEntradas">0</div></div>
+              <div class="total-box"><div class="metric-label">Salidas</div><div class="metric-value" id="dashSalidas">0</div></div>
+              <div class="total-box"><div class="metric-label">Ajustes</div><div class="metric-value" id="dashAjustes">0</div></div>
+            </div>
+            <div class="footer-note small">Usa esta vista como inicio operativo para compras, almacén y administración.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="proveedores" class="section">
+        <div class="section-head">
+          <div>
+            <h3>Base de Proveedores</h3>
+            <p>Directorio de proveedores y condiciones de crédito.</p>
+          </div>
+          <div class="searchbox"><input id="provSearch" placeholder="Buscar proveedor" /></div>
+        </div>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Proveedor</th><th>Crédito</th><th>Monto de Crédito</th><th>Días de Crédito</th></tr></thead>
+          <tbody id="provTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="catalogo" class="section">
+        <div class="section-head">
+          <div>
+            <h3>Catálogo maestro</h3>
+            <p>Productos, medicamentos e insumos con existencia por sucursal.</p>
+          </div>
+          <div class="searchbox"><input id="catalogSearch" placeholder="Buscar por código, descripción o sucursal" /></div>
+        </div>
+        <form class="card" id="catalogForm">
+          <div class="form-grid">
+            <div class="field"><label>Código / EAN</label><input name="codigo" required></div>
+            <div class="field span-2"><label>Descripción</label><input name="descripcion" required></div>
+            <div class="field"><label>Tipo</label><select name="tipo"><option>Medicamento</option><option>Insumo</option><option>Equipo médico</option><option>Químico</option></select></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
+            <div class="field"><label>Almacén</label><input name="almacen" required></div>
+            <div class="field"><label>Unidad de medida</label><input name="unidad" value="PZA"></div>
+            <div class="field"><label>Costo unitario</label><input name="costo" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>IVA %</label><input name="iva" type="number" step="0.01" value="16"></div>
+            <div class="field"><label>Existencia actual</label><input name="existencia" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Stock mínimo</label><input name="minimo" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Proveedor sugerido</label><input name="proveedor"></div>
+            <div class="field"><label>Lote / caducidad</label><select name="controlLote"><option>Sí</option><option>No</option></select></div>
+          </div>
+          <div class="actions-row"><button type="reset" class="btn btn-soft">Limpiar</button><button class="btn btn-primary" type="submit">Guardar artículo</button></div>
+        </form>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Código</th><th>Descripción</th><th>Sucursal</th><th>Existencia</th><th>Costo</th><th>Proveedor</th><th></th></tr></thead>
+          <tbody id="catalogTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="requisiciones" class="section">
+        <div class="section-head"><div><h3>Requisiciones</h3><p>Captura de solicitudes con partidas y fecha de surtimiento.</p></div></div>
+        <form class="card" id="reqForm">
+          <div class="form-grid compact-3">
+            <div class="field"><label>Folio requisición</label><input name="folio" readonly></div>
+            <div class="field"><label>Fecha</label><input name="fecha" type="date" required></div>
+            <div class="field"><label>Fecha de surtimiento</label><input name="fechaSurtimiento" type="date"></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
+            <div class="field"><label>Almacén</label><input name="almacen" required></div>
+            <div class="field"><label>Quien genera</label><input name="generadoPor" required></div>
+            <div class="field span-2"><label>Partidas (una por línea: código | descripción | cantidad | unidad)</label><textarea name="partidas" placeholder="MED-001 | Ondansetron 8 mg | 12 | PZA"></textarea></div>
+            <div class="field"><label>Observaciones</label><textarea name="observaciones"></textarea></div>
+          </div>
+          <div class="actions-row"><button type="reset" class="btn btn-soft" onclick="setReqFolio()">Limpiar</button><button class="btn btn-primary" type="submit">Guardar requisición</button></div>
+        </form>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Folio</th><th>Fecha</th><th>Sucursal</th><th>Generó</th><th>Entrega</th><th>Estatus</th><th></th></tr></thead>
+          <tbody id="reqTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="oc" class="section">
+        <div class="section-head">
+          <div><h3>Órdenes de compra</h3><p>Genera OCs con formato ejecutivo a partir de tu operación.</p></div>
+          <div class="searchbox"><input id="ocSearch" placeholder="Buscar por folio, estatus o proveedor" /></div>
+        </div>
+        <div class="grid-2">
+          <form class="card" id="ocForm">
+            <div class="form-grid compact-3">
+              <div class="field"><label>Folio OC</label><input name="folio" readonly style="background:#eef3f9; cursor:not-allowed;"></div>
+              <div class="field"><label>Fecha OC</label><input name="fecha" type="date" required readonly style="background:#eef3f9; cursor:not-allowed;"></div>
+              <div class="field"><label>Folio requisición</label><select name="folioRequi" id="ocFolioRequiSelect" onfocus="updateRequiSelect()"><option value="">Ninguna / Directa</option></select></div>
+              <div class="field"><label>Razón social</label><input name="razon" value="SANARÉ"></div>
+              <div class="field"><label>Proveedor</label><input name="proveedor" required></div>
+              <div class="field"><label>RFC proveedor</label><input name="rfc"></div>
+              <div class="field"><label>Centro de Vida (Sede)</label><select name="sede" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
+              <div class="field"><label>Condiciones</label><select name="condiciones"><option>Contado</option><option>Crédito 15 días</option><option>Crédito 30 días</option><option>Crédito 45 días</option></select></div>
+              <div class="field"><label>Fecha entrega</label><input name="fechaEntrega" type="date"></div>
+              <div class="field span-2"><label>Partidas (una por línea: no | código | descripción | cantidad | um | costo | iva%)</label><textarea name="partidas" placeholder="1 | MED-001 | Ondansetron 8 mg | 12 | PZA | 125.50 | 16"></textarea></div>
+              <div class="field"><label>Observaciones</label><textarea name="observaciones">Favor de surtir con caducidad mínima y documentación aplicable.</textarea></div>
+            </div>
+            <div class="actions-row"><button type="reset" class="btn btn-soft" onclick="setOcFolio()">Limpiar</button><button class="btn btn-primary" type="submit">Guardar OC</button></div>
+          </form>
+          <div class="oc-preview" id="ocPreview"></div>
+        </div>
+        <div class="card table-wrap" style="margin-top:16px"><table>
+          <thead><tr><th>Folio</th><th>Proveedor</th><th>Sede</th><th>Entrega</th><th>Total</th><th>Condiciones</th><th></th></tr></thead>
+          <tbody id="ocTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="movimientos" class="section">
+        <div class="section-head"><div><h3>Entradas y salidas</h3><p>Control de almacén ligado a factura, cantidad y sucursal.</p></div></div>
+        <form class="card" id="movForm">
+          <div class="form-grid compact-3">
+            <div class="field"><label>Fecha</label><input name="fecha" type="date" required></div>
+            <div class="field"><label>Tipo</label><select name="tipo"><option>Entrada</option><option>Salida</option><option>Ajuste</option></select></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
+            <div class="field"><label>Almacén</label><input name="almacen" required></div>
+            <div class="field"><label>Código</label><input name="codigo" required></div>
+            <div class="field"><label>Descripción</label><input name="descripcion" required></div>
+            <div class="field"><label>Cantidad</label><input name="cantidad" type="number" step="0.01" required></div>
+            <div class="field"><label>Factura / referencia</label><input name="factura"></div>
+            <div class="field"><label>OC ligada</label><input name="oc"></div>
+            <div class="field"><label>Lote</label><input name="lote"></div>
+            <div class="field"><label>Caducidad</label><input name="caducidad" type="date"></div>
+            <div class="field"><label>Usuario</label><input name="usuario"></div>
+          </div>
+          <div class="actions-row"><button type="reset" class="btn btn-soft">Limpiar</button><button class="btn btn-primary" type="submit">Guardar movimiento</button></div>
+        </form>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Código</th><th>Descripción</th><th>Cantidad</th><th>Sucursal</th><th>Factura</th></tr></thead>
+          <tbody id="movTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="inventario" class="section">
+        <div class="section-head"><div><h3>Inventario por sucursal</h3><p>Existencia actual, stock mínimo y alerta de faltantes.</p></div></div>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Código</th><th>Descripción</th><th>Sucursal</th><th>Almacén</th><th>Existencia</th><th>Mínimo</th><th>Estatus</th></tr></thead>
+          <tbody id="inventoryTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="cierres" class="section">
+        <div class="section-head"><div><h3>Cierre mensual</h3><p>Consolidado para inventario inicial, movimientos y diferencia final.</p></div></div>
+        <form class="card" id="closeForm">
+          <div class="form-grid compact-3">
+            <div class="field"><label>Mes</label><input name="mes" type="month" required></div>
+            <div class="field"><label>Centro de Vida (Sucursal)</label><select name="sucursal" required><option>Narvarte</option><option>Morelia</option><option>Condesa</option><option>Matriz</option></select></div>
+            <div class="field"><label>Almacén</label><input name="almacen" required></div>
+            <div class="field"><label>Inventario inicial</label><input name="inicial" type="number" step="0.01" required></div>
+            <div class="field"><label>Entradas</label><input name="entradas" type="number" step="0.01" required></div>
+            <div class="field"><label>Salidas</label><input name="salidas" type="number" step="0.01" required></div>
+            <div class="field"><label>Ajustes</label><input name="ajustes" type="number" step="0.01" value="0"></div>
+            <div class="field"><label>Inventario final físico</label><input name="fisico" type="number" step="0.01" required></div>
+            <div class="field"><label>Responsable</label><input name="responsable"></div>
+          </div>
+          <div class="actions-row"><button type="reset" class="btn btn-soft">Limpiar</button><button class="btn btn-primary" type="submit">Guardar cierre</button></div>
+        </form>
+        <div class="card table-wrap"><table>
+          <thead><tr><th>Mes</th><th>Sucursal</th><th>Teórico</th><th>Físico</th><th>Diferencia</th><th>Responsable</th></tr></thead>
+          <tbody id="closeTable"></tbody>
+        </table></div>
+      </section>
+
+      <section id="reportes" class="section">
+        <div class="section-head"><div><h3>Reportes ejecutivos</h3><p>Vista para revisión rápida de compras e inventario.</p></div></div>
+        <div class="grid-3">
+          <div class="card"><h3>Compras por proveedor</h3><div id="reportProviders" class="small muted"></div></div>
+          <div class="card"><h3>Productos bajo mínimo</h3><div id="reportLowStock" class="small muted"></div></div>
+          <div class="card"><h3>Último cierre</h3><div id="reportLatestClose" class="small muted"></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+const KEY = 'sanare_erp_demo_v1';
+let state = loadState();
+if (!state.providers || state.providers.length === 0) {
+  state.providers = [
+      {nombre: "NADRO", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "UNIMEDICAL", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "SALUD Y VIDA CONDESA", credito: "SI", monto: "300000", dias: "30 días"},
+      {nombre: "PHARMATYCSA", credito: "Si", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MCC", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MEDICXEN (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "ALTHACARE (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "DEMSA", credito: "SI", monto: "1500000", dias: "Pendiente"},
+      {nombre: "PROBEMEDIC", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "RENAVITA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "FARMACIAS VIDA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "TIVASANI", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "DROGAS Y ENSERES", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "PIXAN", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "MEDMONT", credito: "SI", monto: "500000", dias: "30 días"},
+      {nombre: "SALUCOM", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "ATRYS", credito: "SI", monto: "INDEFINIDO", dias: "30 días"}
+  ];
+}
+
+function defaultState(){
+  return { catalog: [], requisitions: [], orders: [], moves: [], closes: [], providers: [] };
+}
+function loadState(){
+  try { return JSON.parse(localStorage.getItem(KEY)) || defaultState(); }
+  catch { return defaultState(); }
+}
+function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); renderAll(); }
+function money(v){ return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(Number(v||0)); }
+function num(v){ return Number(v||0); }
+function nextFolio(prefix, items){ return `${prefix}-${new Date().getFullYear()}-${String(items.length+1).padStart(4,'0')}`; }
+
+function setReqFolio(){ document.querySelector('#reqForm [name="folio"]').value = nextFolio('RQ', state.requisitions); }
+function setOcFolio(){ document.querySelector('#ocForm [name="folio"]').value = nextFolio('OC', state.orders); updateOcPreview(); }
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active', s.id===id));
+  document.querySelectorAll('.nav-btn[data-target]').forEach(b=>b.classList.toggle('active', b.dataset.target===id));
+}
+document.querySelectorAll('.nav-btn[data-target]').forEach(btn=>btn.addEventListener('click',()=>showSection(btn.dataset.target)));
+
+function parseReqPartidas(text){
+  return text.split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{
+    const [codigo='', descripcion='', cantidad='0', unidad='PZA'] = line.split('|').map(v=>v.trim());
+    return { codigo, descripcion, cantidad:num(cantidad), unidad };
+  });
+}
+function parseOcPartidas(text){
+  return text.split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{
+    const [partida='1', codigo='', descripcion='', cantidad='0', unidad='PZA', costo='0', iva='16'] = line.split('|').map(v=>v.trim());
+    const subtotal = num(cantidad)*num(costo);
+    const ivaMonto = subtotal*(num(iva)/100);
+    return { partida, codigo, descripcion, cantidad:num(cantidad), unidad, costo:num(costo), iva:num(iva), subtotal, total: subtotal+ivaMonto };
+  });
+}
+
+function updateOcPreview(){
+  const f = document.getElementById('ocForm');
+  const data = Object.fromEntries(new FormData(f).entries());
+  const partidas = parseOcPartidas(data.partidas || '');
+  const subtotal = partidas.reduce((a,b)=>a+b.subtotal,0);
+  const iva = partidas.reduce((a,b)=>a + (b.total - b.subtotal),0);
+  const total = subtotal + iva;
+  document.getElementById('ocPreview').innerHTML = `
+    <div class="oc-header">
+      <div>
+        <div class="small muted">SANARÉ</div>
+        <h4>ORDEN DE COMPRA</h4>
+        <div class="small muted">Formato operativo tipo ERP</div>
+      </div>
+      <div class="right">
+        <div><strong>${data.folio || ''}</strong></div>
+        <div class="small muted">Fecha: ${data.fecha || ''}</div>
+      </div>
+    </div>
+    <div class="oc-meta">
+      <div class="box"><strong>Proveedor</strong><br>${data.proveedor || '-'}</div>
+      <div class="box"><strong>RFC</strong><br>${data.rfc || '-'}</div>
+      <div class="box"><strong>Folio requi</strong><br>${data.folioRequi || '-'}</div>
+      <div class="box"><strong>Sede</strong><br>${data.sede || '-'}</div>
+      <div class="box"><strong>Razón social</strong><br>${data.razon || '-'}</div>
+      <div class="box"><strong>Condiciones</strong><br>${data.condiciones || '-'}</div>
+      <div class="box"><strong>Fecha entrega</strong><br>${data.fechaEntrega || '-'}</div>
+      <div class="box"><strong>Elaboración</strong><br>${new Date().toLocaleString('es-MX')}</div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Cantidad</th><th>UM</th><th>Costo</th><th>IVA</th><th>Total</th></tr></thead>
+      <tbody>
+        ${partidas.length ? partidas.map(p=>`<tr><td>${p.partida}</td><td>${p.codigo}</td><td>${p.descripcion}</td><td>${p.cantidad}</td><td>${p.unidad}</td><td>${money(p.costo)}</td><td>${p.iva}%</td><td>${money(p.total)}</td></tr>`).join('') : '<tr><td colspan="8" class="muted">Agrega partidas para previsualizar la OC.</td></tr>'}
+      </tbody>
+    </table></div>
+    <div class="totals">
+      <div class="total-box"><div class="metric-label">Subtotal</div><div class="metric-value">${money(subtotal)}</div></div>
+      <div class="total-box"><div class="metric-label">Servicio</div><div class="metric-value">${money(0)}</div></div>
+      <div class="total-box"><div class="metric-label">IVA</div><div class="metric-value">${money(iva)}</div></div>
+      <div class="total-box"><div class="metric-label">Total</div><div class="metric-value">${money(total)}</div></div>
+    </div>
+    <div class="footer-note small"><strong>Observaciones:</strong> ${data.observaciones || 'Sin observaciones.'}</div>
+  `;
+}
+
+// Forms
+setReqFolio();
+setOcFolio();
+document.querySelector('#reqForm [name="fecha"]').valueAsDate = new Date();
+document.querySelector('#ocForm [name="fecha"]').valueAsDate = new Date();
+document.querySelector('#movForm [name="fecha"]').valueAsDate = new Date();
+document.querySelector('#ocForm').addEventListener('input', updateOcPreview);
+updateOcPreview();
+
+document.getElementById('catalogForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.costo = num(data.costo); data.iva = num(data.iva); data.existencia = num(data.existencia); data.minimo = num(data.minimo);
+  state.catalog.unshift(data); saveState(); e.target.reset();
+});
+
+document.getElementById('reqForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.partidas = parseReqPartidas(data.partidas || '');
+  data.estatus = 'Abierta';
+  state.requisitions.unshift(data); saveState(); e.target.reset(); setReqFolio(); document.querySelector('#reqForm [name="fecha"]').valueAsDate = new Date();
+});
+
+document.getElementById('ocForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.partidas = parseOcPartidas(data.partidas || '');
+  data.subtotal = data.partidas.reduce((a,b)=>a+b.subtotal,0);
+  data.ivaTotal = data.partidas.reduce((a,b)=>a+(b.total-b.subtotal),0);
+  data.total = data.subtotal + data.ivaTotal;
+  state.orders.unshift(data);
+  if(data.folioRequi){
+    const req = state.requisitions.find(r=>r.folio===data.folioRequi);
+    if(req) req.estatus = 'Convertida a OC';
+  }
+  saveState(); e.target.reset(); setOcFolio(); document.querySelector('#ocForm [name="fecha"]').valueAsDate = new Date(); updateOcPreview();
+});
+
+document.getElementById('movForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.cantidad = num(data.cantidad);
+  state.moves.unshift(data);
+  const art = state.catalog.find(c=>c.codigo===data.codigo && c.sucursal===data.sucursal);
+  if(art){
+    if(data.tipo==='Entrada') art.existencia += data.cantidad;
+    if(data.tipo==='Salida') art.existencia -= data.cantidad;
+    if(data.tipo==='Ajuste') art.existencia = data.cantidad;
+  }
+  saveState(); e.target.reset(); document.querySelector('#movForm [name="fecha"]').valueAsDate = new Date();
+});
+
+document.getElementById('closeForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  data.inicial = num(data.inicial); data.entradas = num(data.entradas); data.salidas = num(data.salidas); data.ajustes = num(data.ajustes); data.fisico = num(data.fisico);
+  data.teorico = data.inicial + data.entradas - data.salidas + data.ajustes;
+  data.diferencia = data.fisico - data.teorico;
+  state.closes.unshift(data); saveState(); e.target.reset();
+});
+
+function deleteItem(collection, index){ state[collection].splice(index,1); saveState(); }
+
+function renderCatalog(){
+  const term = (document.getElementById('catalogSearch').value || '').toLowerCase();
+  const rows = state.catalog.filter(r => !term || [r.codigo,r.descripcion,r.sucursal,r.almacen,r.proveedor].join(' ').toLowerCase().includes(term));
+  document.getElementById('catalogTable').innerHTML = rows.length ? rows.map((r,i)=>`
+    <tr><td>${r.codigo}</td><td>${r.descripcion}<div class="small muted">${r.tipo} · ${r.unidad}</div></td><td>${r.sucursal}<div class="small muted">${r.almacen}</div></td><td>${r.existencia}</td><td>${money(r.costo)}</td><td>${r.proveedor || '-'}</td><td><button class="btn btn-soft" onclick="deleteItem('catalog', ${state.catalog.indexOf(r)})">Eliminar</button></td></tr>
+  `).join('') : `<tr><td colspan="7"><div class="empty">Sin artículos cargados.</div></td></tr>`;
+}
+document.getElementById('catalogSearch').addEventListener('input', renderCatalog);
+
+function renderRequisitions(){
+  const term = (document.getElementById('reqSearch')?.value || '').toLowerCase();
+  const rows = state.requisitions.filter(r => !term || [r.folio, r.estatus, r.sucursal, r.generadoPor].join(' ').toLowerCase().includes(term));
+  
+  const body = document.getElementById('reqTable');
+  body.innerHTML = rows.length ? rows.map((r,i)=>{
+    // Buscar si hay OCs o Facturas ligadas a esta requi
+    const ocs_ligadas = state.orders.filter(o => o.folioRequi === r.folio).map(o => o.folio);
+    const moves_ligados = state.moves.filter(m => ocs_ligadas.includes(m.oc) && m.factura).map(m => m.factura);
+    const ocs_str = ocs_ligadas.length ? ocs_ligadas.join(', ') : '-';
+    const facturas_str = [...new Set(moves_ligados)].length ? [...new Set(moves_ligados)].join(', ') : '-';
+    
+    return `<tr><td>${r.folio}</td><td>${r.fecha}</td><td>${r.sucursal}<div class="small muted">${r.almacen}</div></td><td>${r.generadoPor}</td><td>${r.fechaSurtimiento || '-'}</td><td>${ocs_str}</td><td>${facturas_str}</td><td><span class="pill ${r.estatus.includes('Abierta')||r.estatus.includes('Parcial')?'wait':r.estatus==='Cancelada'?'bad':'ok'}">${r.estatus}</span></td><td><button class="btn btn-soft" onclick="prefillOC('${r.folio}')">Pasar a OC</button></td></tr>`;
+  }).join('') : `<tr><td colspan="9"><div class="empty">Sin requisiciones encontradas.</div></td></tr>`;
+
+  document.getElementById('dashboardReqs').innerHTML = state.requisitions.slice(0,5).map(r=>`<tr><td>${r.folio}</td><td>${r.sucursal}</td><td>${r.almacen}</td><td>${r.fechaSurtimiento || '-'}</td><td><span class="pill ${r.estatus.includes('Abierta')?'wait':'ok'}">${r.estatus}</span></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Sin registros.</td></tr>';
+}
+document.getElementById('reqSearch')?.addEventListener('input', renderRequisitions);
+
+
+function prefillOC(folio){
+  const req = state.requisitions.find(r=>r.folio===folio);
+  if(!req) return;
+  showSection('oc');
+  const form = document.getElementById('ocForm');
+  updateRequiSelect();
+  form.folioRequi.value = req.folio;
+  form.sede.value = req.sucursal;
+  form.partidas.value = (req.partidas||[]).map((p,idx)=>`${idx+1} | ${p.codigo} | ${p.descripcion} | ${p.cantidad} | ${p.unidad} | 0 | 16`).join('\n');
+  updateOcPreview();
+}
+
+
+function updateRequiSelect(){
+  const sel = document.getElementById('ocFolioRequiSelect');
+  if(!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Ninguna / Directa</option>' + state.requisitions.filter(r => r.estatus.includes('Abierta') || r.estatus.includes('Parcial') || r.folio === currentVal).map(r => `<option value="${r.folio}">${r.folio} - ${r.sucursal} (${r.estatus})</option>`).join('');
+  sel.value = currentVal;
+}
+function renderOrders(){
+  const term = (document.getElementById('ocSearch')?.value || '').toLowerCase();
+  const rows = state.orders.filter(o => !term || [o.folio, o.proveedor, o.sede].join(' ').toLowerCase().includes(term));
+  document.getElementById('ocTable').innerHTML = rows.length ? rows.map((o,i)=>`
+    <tr><td>${o.folio}</td><td>${o.proveedor}</td><td>${o.sede}</td><td>${o.fechaEntrega || '-'}</td><td>${money(o.total)}</td><td>${o.condiciones}</td><td><button class="btn btn-soft" onclick="loadOrder(${i})">Ver</button></td></tr>
+  `).join('') : `<tr><td colspan="7"><div class="empty">Sin órdenes encontradas.</div></td></tr>`;
+}
+document.getElementById('ocSearch')?.addEventListener('input', renderOrders);
+
+function loadOrder(i){
+  const o = state.orders[i];
+  showSection('oc');
+  const f = document.getElementById('ocForm');
+  ['folio','fecha','folioRequi','razon','proveedor','rfc','sede','condiciones','fechaEntrega','observaciones'].forEach(k=>f[k].value = o[k] || '');
+  f.partidas.value = (o.partidas||[]).map(p=>`${p.partida} | ${p.codigo} | ${p.descripcion} | ${p.cantidad} | ${p.unidad} | ${p.costo} | ${p.iva}`).join('\n');
+  updateRequiSelect();
+  f.folioRequi.value = o.folioRequi || "";
+  updateOcPreview();
+}
+
+function renderMoves(){
+  document.getElementById('movTable').innerHTML = state.moves.length ? state.moves.map(m=>`
+    <tr><td>${m.fecha}</td><td><span class="pill ${m.tipo==='Entrada'?'ok':m.tipo==='Salida'?'bad':'wait'}">${m.tipo}</span></td><td>${m.codigo}</td><td>${m.descripcion}</td><td>${m.cantidad}</td><td>${m.sucursal}<div class="small muted">${m.almacen}</div></td><td>${m.factura || '-'}</td></tr>
+  `).join('') : `<tr><td colspan="7"><div class="empty">Sin movimientos.</div></td></tr>`;
+}
+
+function renderInventory(){
+  document.getElementById('inventoryTable').innerHTML = state.catalog.length ? state.catalog.map(c=>{
+    const est = c.existencia <= 0 ? ['Sin stock','bad'] : c.existencia <= c.minimo ? ['Bajo mínimo','wait'] : ['OK','ok'];
+    return `<tr><td>${c.codigo}</td><td>${c.descripcion}</td><td>${c.sucursal}</td><td>${c.almacen}</td><td>${c.existencia}</td><td>${c.minimo}</td><td><span class="pill ${est[1]}">${est[0]}</span></td></tr>`;
+  }).join('') : `<tr><td colspan="7"><div class="empty">Sin inventario.</div></td></tr>`;
+}
+
+function renderCloses(){
+  document.getElementById('closeTable').innerHTML = state.closes.length ? state.closes.map(c=>`
+    <tr><td>${c.mes}</td><td>${c.sucursal}<div class="small muted">${c.almacen}</div></td><td>${c.teorico}</td><td>${c.fisico}</td><td><span class="pill ${c.diferencia===0?'ok':Math.abs(c.diferencia)<=5?'wait':'bad'}">${c.diferencia}</span></td><td>${c.responsable || '-'}</td></tr>
+  `).join('') : `<tr><td colspan="6"><div class="empty">Sin cierres mensuales.</div></td></tr>`;
+}
+
+function renderReports(){
+  const byProvider = {};
+  state.orders.forEach(o=> byProvider[o.proveedor] = (byProvider[o.proveedor]||0) + num(o.total));
+  document.getElementById('reportProviders').innerHTML = Object.keys(byProvider).length ? Object.entries(byProvider).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v])=>`<div>${k}: <strong>${money(v)}</strong></div>`).join('') : 'Sin información';
+
+  const low = state.catalog.filter(c=>num(c.existencia)<=num(c.minimo));
+  document.getElementById('reportLowStock').innerHTML = low.length ? low.map(c=>`<div>${c.codigo} · ${c.descripcion} <strong>(${c.existencia})</strong></div>`).join('') : 'Sin faltantes críticos';
+
+  const last = state.closes[0];
+  document.getElementById('reportLatestClose').innerHTML = last ? `
+    <div><strong>Mes:</strong> ${last.mes}</div>
+    <div><strong>Sucursal:</strong> ${last.sucursal}</div>
+    <div><strong>Teórico:</strong> ${last.teorico}</div>
+    <div><strong>Físico:</strong> ${last.fisico}</div>
+    <div><strong>Diferencia:</strong> ${last.diferencia}</div>
+  ` : 'Sin cierres registrados';
+}
+
+function renderDashboard(){
+  const inventoryValue = state.catalog.reduce((a,b)=>a + num(b.existencia)*num(b.costo),0);
+  document.getElementById('kpiInventario').textContent = money(inventoryValue);
+  document.getElementById('kpiReqs').textContent = state.requisitions.filter(r=>r.estatus==='Abierta').length;
+  document.getElementById('kpiOcs').textContent = state.orders.length;
+  const lastClose = state.closes[0];
+  document.getElementById('kpiDiff').textContent = lastClose ? lastClose.diferencia : 0;
+  const lastMonth = state.moves.slice(0,50);
+  document.getElementById('dashEntradas').textContent = lastMonth.filter(m=>m.tipo==='Entrada').reduce((a,b)=>a+num(b.cantidad),0);
+  document.getElementById('dashSalidas').textContent = lastMonth.filter(m=>m.tipo==='Salida').reduce((a,b)=>a+num(b.cantidad),0);
+  document.getElementById('dashAjustes').textContent = lastMonth.filter(m=>m.tipo==='Ajuste').length;
+}
+
+
+function renderProviders(){
+  const term = (document.getElementById('provSearch')?.value || '').toLowerCase();
+  const rows = (state.providers || []).filter(p => !term || p.nombre.toLowerCase().includes(term));
+  const body = document.getElementById('provTable');
+  if(body) {
+    body.innerHTML = rows.length ? rows.map(p => `<tr><td>${p.nombre}</td><td><span class="pill ${p.credito.toUpperCase()==='SI'?'ok':'bad'}">${p.credito}</span></td><td>${p.monto}</td><td>${p.dias}</td></tr>`).join('') : `<tr><td colspan="4"><div class="empty">Sin proveedores.</div></td></tr>`;
+  }
+}
+document.getElementById('provSearch')?.addEventListener('input', renderProviders);
+
+function renderAll(){ renderProviders(); renderCatalog(); renderRequisitions(); renderOrders(); renderMoves(); renderInventory(); renderCloses(); renderReports(); renderDashboard(); }
+
+function loadDemo(){
+  state = {
+    catalog:[
+      {codigo:'MED-001',descripcion:'Ondansetron 8 mg',tipo:'Medicamento',sucursal:'Narvarte',almacen:'Farmacia',unidad:'PZA',costo:125.5,iva:16,existencia:42,minimo:15,proveedor:'Equipo Médico Mercado Libre',controlLote:'Sí'},
+      {codigo:'INS-014',descripcion:'Jeringa 10 ml',tipo:'Insumo',sucursal:'Morelia',almacen:'Almacén General',unidad:'PZA',costo:6.2,iva:16,existencia:120,minimo:80,proveedor:'Akuasul',controlLote:'No'},
+      {codigo:'QUI-009',descripcion:'Hipoclorito solución',tipo:'Químico',sucursal:'Narvarte',almacen:'Químicos',unidad:'LT',costo:48,iva:16,existencia:8,minimo:10,proveedor:'Akuasul',controlLote:'Sí'}
+    ],
+    requisitions:[
+      {folio:'RQ-2026-0001',fecha:'2026-04-22',fechaSurtimiento:'2026-04-24',sucursal:'Narvarte',almacen:'Farmacia',generadoPor:'Karla Herrera',partidas:[{codigo:'MED-001',descripcion:'Ondansetron 8 mg',cantidad:12,unidad:'PZA'}],observaciones:'Urgente para surtimiento',estatus:'Abierta'}
+    ],
+    orders:[
+      {folio:'OC-2026-0001',fecha:'2026-04-22',folioRequi:'RQ-2026-0000',razon:'SANARÉ',proveedor:'Akuasul',rfc:'AKU030910CH3',sede:'Narvarte',condiciones:'Crédito 30 días',fechaEntrega:'2026-04-25',partidas:[{partida:'1',codigo:'INS-014',descripcion:'Jeringa 10 ml',cantidad:100,unidad:'PZA',costo:6.2,iva:16,subtotal:620,total:719.2}],subtotal:620,ivaTotal:99.2,total:719.2,observaciones:'Favor de surtir con documentación aplicable.'}
+    ],
+    moves:[
+      {fecha:'2026-04-22',tipo:'Entrada',sucursal:'Narvarte',almacen:'Farmacia',codigo:'MED-001',descripcion:'Ondansetron 8 mg',cantidad:20,factura:'FAC-2204',oc:'OC-2026-0001',lote:'LOT-01',caducidad:'2027-03-01',usuario:'Almacén'},
+      {fecha:'2026-04-22',tipo:'Salida',sucursal:'Narvarte',almacen:'Farmacia',codigo:'MED-001',descripcion:'Ondansetron 8 mg',cantidad:5,factura:'CONSUMO',oc:'',lote:'LOT-01',caducidad:'2027-03-01',usuario:'Enfermería'}
+    ],
+    closes:[
+      {mes:'2026-03',sucursal:'Narvarte',almacen:'Farmacia',inicial:200,entradas:55,salidas:40,ajustes:-2,fisico:212,responsable:'Administración',teorico:213,diferencia:-1}
+    ],
+    providers: [
+      {nombre: "NADRO", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "UNIMEDICAL", credito: "SI", monto: "1500000", dias: "30 días"},
+      {nombre: "SALUD Y VIDA CONDESA", credito: "SI", monto: "300000", dias: "30 días"},
+      {nombre: "PHARMATYCSA", credito: "Si", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MCC", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "MEDICXEN (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "ALTHACARE (IMPORTADOS)", credito: "SI", monto: "INDEFINIDO", dias: "30 días"},
+      {nombre: "DEMSA", credito: "SI", monto: "1500000", dias: "Pendiente"},
+      {nombre: "PROBEMEDIC", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "RENAVITA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "FARMACIAS VIDA", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "TIVASANI", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "DROGAS Y ENSERES", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "PIXAN", credito: "SI", monto: "INDEFINIDO", dias: "15 días"},
+      {nombre: "MEDMONT", credito: "SI", monto: "500000", dias: "30 días"},
+      {nombre: "SALUCOM", credito: "NO", monto: "Pendiente", dias: "Pendiente"},
+      {nombre: "ATRYS", credito: "SI", monto: "INDEFINIDO", dias: "30 días"}
+    ]
+  };
+  saveState(); setReqFolio(); setOcFolio(); updateOcPreview();
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sanare-compras-data.json'; a.click();
+}
+
+document.getElementById('loadDemoBtn').addEventListener('click', loadDemo);
+document.getElementById('clearDataBtn').addEventListener('click', ()=>{ if(confirm('¿Deseas eliminar los datos locales?')){ state = defaultState(); saveState(); setReqFolio(); setOcFolio(); updateOcPreview(); } });
+
+renderAll();
+</script>
+</body>
+</html>
